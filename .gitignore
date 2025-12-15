@@ -1,0 +1,24 @@
+# Build artifacts
+bin/
+*.ipk
+*.tar.gz
+/tmp/
+build/
+
+# OpenWrt SDK
+openwrt-sdk-*/
+
+# Extracted packages
+data/
+control/
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
