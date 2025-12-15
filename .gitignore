@@ -1,0 +1,22 @@
+# Build artifacts
+build/
+*.ipk
+*.tar.gz
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log

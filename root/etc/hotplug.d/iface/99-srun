@@ -1,0 +1,21 @@
+#!/bin/sh
+# Hotplug script for Srun authentication
+
+[ "$ACTION" = "ifup" ] || exit 0
+
+. /lib/functions.sh
+
+config_load srun
+config_get_bool enabled basic enabled 0
+config_get_bool auto_login basic auto_login 1
+config_get interface basic interface "wan"
+
+[ "$enabled" = "1" ] || exit 0
+[ "$auto_login" = "1" ] || exit 0
+[ "$INTERFACE" = "$interface" ] || exit 0
+
+# Wait a bit for network to stabilize
+sleep 5
+
+# Attempt login
+/usr/bin/srun-auth login &

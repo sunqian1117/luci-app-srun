@@ -1,0 +1,71 @@
+<%+cbi/valueheader%>
+
+<script type="text/javascript">//<![CDATA[
+    XHR.poll(3, '<%=url("admin/services/srun/status")%>', null,
+        function(x, data) {
+            var status = data.status || 'unknown';
+            var statusDiv = document.getElementById('srun_status');
+            if (status.indexOf('online') >= 0) {
+                statusDiv.innerHTML = '<span style="color:green">● 已连接</span>';
+            } else if (status.indexOf('offline') >= 0) {
+                statusDiv.innerHTML = '<span style="color:red">● 未连接</span>';
+            } else {
+                statusDiv.innerHTML = '<span style="color:gray">● 未知</span>';
+            }
+        }
+    );
+
+    function doLogin() {
+        XHR.get('<%=url("admin/services/srun/login")%>', null,
+            function(x) {
+                alert('登录请求已发送，请稍候查看状态');
+            }
+        );
+    }
+
+    function doLogout() {
+        XHR.get('<%=url("admin/services/srun/logout")%>', null,
+            function(x) {
+                alert('注销请求已发送');
+            }
+        );
+    }
+
+    function showLog() {
+        XHR.get('<%=url("admin/services/srun/log")%>', null,
+            function(x) {
+                var logDiv = document.getElementById('srun_log');
+                logDiv.innerHTML = '<pre>' + x.responseText + '</pre>';
+            }
+        );
+    }
+//]]></script>
+
+<div class="cbi-section">
+    <div class="cbi-section-node">
+        <div class="table">
+            <div class="tr">
+                <div class="td left" width="33%">
+                    <strong>认证状态：</strong>
+                    <span id="srun_status" style="font-weight:bold">
+                        <span style="color:gray">● 加载中...</span>
+                    </span>
+                </div>
+            </div>
+            <div class="tr">
+                <div class="td left">
+                    <input type="button" class="cbi-button cbi-button-apply" value="手动登录" onclick="doLogin()" />
+                    <input type="button" class="cbi-button cbi-button-reset" value="注销" onclick="doLogout()" />
+                    <input type="button" class="cbi-button cbi-button-action" value="查看日志" onclick="showLog()" />
+                </div>
+            </div>
+            <div class="tr">
+                <div class="td left">
+                    <div id="srun_log"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%+cbi/valuefooter%>
