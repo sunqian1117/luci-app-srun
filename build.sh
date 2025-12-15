@@ -95,13 +95,13 @@ find "$BUILD_DIR/data/usr/lib/srun" -type f -name "*.sh" -exec chmod +x {} \; 2>
 # Create data.tar.gz
 echo "Creating data.tar.gz..."
 cd "$BUILD_DIR/data"
-tar czf ../data.tar.gz ./*
+tar czf ../data.tar.gz .
 cd ..
 
 # Create control.tar.gz
 echo "Creating control.tar.gz..."
 cd "$BUILD_DIR/CONTROL"
-tar czf ../control.tar.gz ./*
+tar czf ../control.tar.gz .
 cd ..
 
 # Create debian-binary
