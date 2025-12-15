@@ -1,0 +1,167 @@
+#!/bin/sh
+# Srun Portal Authentication Client for OpenWrt
+# Copyright (C) 2024
+
+. /lib/functions.sh
+. /usr/lib/srun/crypto.sh
+
+CONFIG_FILE="/etc/config/srun"
+LOG_FILE="/var/log/srun.log"
+STATUS_FILE="/tmp/srun_status"
+
+log_message() {
+    local msg="$1"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $msg" >> "$LOG_FILE"
+    echo "$msg"
+}
+
+load_config() {
+    config_load srun
+    config_get_bool enabled basic enabled 0
+    config_get server basic server ""
+    config_get username basic username ""
+    config_get password basic password ""
+    config_get interface basic interface "wan"
+    config_get acid basic acid "1"
+    config_get auto_login basic auto_login 1
+}
+
+get_ip() {
+    local iface="$1"
+    ip -4 addr show dev "$iface" 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n1
+}
+
+get_mac() {
+    local iface="$1"
+    ip link show "$iface" 2>/dev/null | grep -oP '(?<=link/ether\s)[0-9a-f:]+' | head -n1
+}
+
+do_login() {
+    load_config
+    
+    if [ "$enabled" != "1" ]; then
+        log_message "Srun is disabled"
+        return 1
+    fi
+    
+    if [ -z "$server" ] || [ -z "$username" ] || [ -z "$password" ]; then
+        log_message "Configuration incomplete"
+        return 1
+    fi
+    
+    local ip=$(get_ip "$interface")
+    local mac=$(get_mac "$interface")
+    
+    if [ -z "$ip" ]; then
+        log_message "Cannot get IP address from interface $interface"
+        return 1
+    fi
+    
+    log_message "Attempting login: user=$username, ip=$ip, mac=$mac"
+    
+    # Build authentication data
+    local timestamp=$(date +%s)
+    local info="{\"username\":\"$username\",\"password\":\"$password\",\"ip\":\"$ip\",\"acid\":\"$acid\",\"enc_ver\":\"srun_bx1\"}"
+    
+    # Encode info (using crypto.sh functions)
+    local encoded_info=$(srun_encode "$info")
+    local md5_password=$(srun_md5 "$password")
+    
+    # Build request URL
+    local url="${server}/cgi-bin/srun_portal"
+    local params="action=login&username=$username&password={MD5}$md5_password&ac_id=$acid&ip=$ip&info=$encoded_info&n=200&type=1"
+    
+    # Send request
+    local response=$(curl -s -m 10 "$url?$params")
+    local ret=$?
+    
+    if [ $ret -ne 0 ]; then
+        log_message "Login failed: curl error $ret"
+        echo "offline" > "$STATUS_FILE"
+        return 1
+    fi
+    
+    # Parse response
+    if echo "$response" | grep -q '"error":"ok"'; then
+        log_message "Login successful"
+        echo "online" > "$STATUS_FILE"
+        echo "$username" >> "$STATUS_FILE"
+        echo "$ip" >> "$STATUS_FILE"
+        return 0
+    else
+        local error=$(echo "$response" | jsonfilter -e '@.error_msg' 2>/dev/null)
+        log_message "Login failed: ${error:-unknown error}"
+        echo "offline" > "$STATUS_FILE"
+        return 1
+    fi
+}
+
+do_logout() {
+    load_config
+    
+    if [ -z "$server" ] || [ -z "$username" ]; then
+        log_message "Configuration incomplete"
+        return 1
+    fi
+    
+    local ip=$(get_ip "$interface")
+    
+    if [ -z "$ip" ]; then
+        log_message "Cannot get IP address from interface $interface"
+        return 1
+    fi
+    
+    log_message "Attempting logout: user=$username, ip=$ip"
+    
+    # Build request URL
+    local url="${server}/cgi-bin/srun_portal"
+    local params="action=logout&username=$username&ac_id=$acid&ip=$ip"
+    
+    # Send request
+    local response=$(curl -s -m 10 "$url?$params")
+    local ret=$?
+    
+    if [ $ret -eq 0 ]; then
+        log_message "Logout successful"
+        echo "offline" > "$STATUS_FILE"
+        return 0
+    else
+        log_message "Logout failed: curl error $ret"
+        return 1
+    fi
+}
+
+check_status() {
+    if [ -f "$STATUS_FILE" ]; then
+        cat "$STATUS_FILE"
+    else
+        echo "unknown"
+    fi
+}
+
+show_log() {
+    if [ -f "$LOG_FILE" ]; then
+        tail -n 100 "$LOG_FILE"
+    else
+        echo "No log file found"
+    fi
+}
+
+case "$1" in
+    login)
+        do_login
+        ;;
+    logout)
+        do_logout
+        ;;
+    status)
+        check_status
+        ;;
+    log)
+        show_log
+        ;;
+    *)
+        echo "Usage: $0 {login|logout|status|log}"
+        exit 1
+        ;;
+esac

@@ -1,0 +1,8 @@
+config basic 'basic'
+	option enabled '0'
+	option server 'http://your-srun-server.edu.cn'
+	option username 'your-username'
+	option password 'your-password'
+	option interface 'wan'
+	option acid '1'
+	option auto_login '1'
