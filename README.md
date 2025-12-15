@@ -2,6 +2,14 @@
 
 OpenWrt 平台的深澜（Srun）校园网认证客户端，支持自动登录、断线重连和 Web 界面配置。
 
+## 📚 文档导航
+
+- **[快速安装指南 (INSTALL_CN.md)](INSTALL_CN.md)** - 最简单的入门教程
+- **[详细构建说明 (BUILD.md)](BUILD.md)** - 完整的构建和安装文档（中英双语）
+- **[常见问题 (FAQ.md)](FAQ.md)** - 30+ 个常见问题解答
+- **[安装流程图 (WORKFLOW.md)](WORKFLOW.md)** - 可视化安装流程
+- **[项目结构 (STRUCTURE.md)](STRUCTURE.md)** - 文件结构和开发说明
+
 ## 功能特性
 
 - ✅ 完整的深澜 Srun Portal 认证协议支持
