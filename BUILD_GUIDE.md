@@ -30,7 +30,8 @@ IPK (Itsy Package) 是 OpenWrt 使用的软件包格式，类似于 Debian 的 .
 
 #### 前置条件
 - 已安装 Git
-- 已安装 tar 和 gzip（通常系统自带）
+- 已安装 tar、gzip 和 ar（通常系统自带）
+  - `ar` 命令用于创建符合 IPK 格式的软件包
 
 #### 构建步骤
 
@@ -47,6 +48,8 @@ cd luci-app-srun
 ```
 
 就这么简单！
+
+**注意**：构建脚本会使用 `ar` 命令创建符合 OpenWrt 标准的 IPK 包格式（ar 归档格式）。
 
 ---
 
@@ -177,8 +180,8 @@ ls -lh *.ipk
 4. **打包**
    - 创建 `data.tar.gz` - 包含所有软件文件
    - 创建 `control.tar.gz` - 包含控制文件
-   - 创建 `debian-binary` - 标识包格式版本
-   - 将以上三个文件打包成最终的 `.ipk` 文件
+   - 创建 `debian-binary` - 标识包格式版本（2.0）
+   - 使用 `ar` 命令将以上三个文件打包成符合 IPK 标准的 `.ipk` 文件
 
 5. **清理**
    - 临时文件保留在 `build/` 目录中
@@ -194,8 +197,11 @@ ls -lh *.ipk
 # 查看 IPK 文件信息
 ls -lh *.ipk
 
+# 验证 IPK 格式（应显示 "Debian binary package"）
+file luci-app-srun_*.ipk
+
 # 查看 IPK 包含的文件列表
-tar -tzf luci-app-srun_*.ipk
+ar t luci-app-srun_*.ipk
 
 # 提取并查看控制文件
 cd build
@@ -366,6 +372,13 @@ Depends: curl, jsonfilter, coreutils-base64, openssl-util, new-package
 rm -rf build/
 rm *.ipk
 ```
+
+### Q: 安装时提示 "Malformed package file" 错误？
+**A:** 这通常是因为 IPK 包格式不正确。确保：
+1. 使用最新版本的 `build-ipk.sh` 脚本（使用 `ar` 命令打包）
+2. 系统已安装 `ar` 命令（通常在 `binutils` 包中）
+3. 重新构建包：`rm -rf build/ *.ipk && ./build-ipk.sh`
+4. 验证格式：`file luci-app-srun_*.ipk` 应显示 "Debian binary package"
 
 ---
 

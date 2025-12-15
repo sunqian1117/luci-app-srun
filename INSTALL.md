@@ -311,7 +311,30 @@ cat /var/log/srun.log
 
 ### 故障排查
 
-#### 问题 1：安装依赖时出现错误
+#### 问题 1：安装 IPK 包时提示 "Malformed package file"
+
+**错误信息**：`pkg_init_from_file: Malformed package file /tmp/xxx.ipk`
+
+**原因**：IPK 包格式不正确（可能使用了错误的打包方式）
+
+**解决方法**：
+1. 确保使用最新版本的构建脚本
+2. 重新构建包：
+```bash
+# 在电脑上
+cd luci-app-srun
+rm -rf build/ *.ipk
+./build-ipk.sh
+
+# 验证格式
+file luci-app-srun_*.ipk
+# 应显示：Debian binary package (format 2.0)
+
+# 重新上传并安装
+scp luci-app-srun_*.ipk root@192.168.1.1:/tmp/
+```
+
+#### 问题 2：安装依赖时出现错误
 
 **错误信息**：`Unknown package 'curl'` 或 `Failed to download`
 
@@ -329,7 +352,7 @@ vi /etc/opkg/distfeeds.conf
 # src/gz openwrt_base https://downloads.openwrt.org/releases/22.03.0/packages/.../base
 ```
 
-#### 问题 2：认证失败
+#### 问题 3：认证失败
 
 **检查步骤**：
 
@@ -351,7 +374,7 @@ tail -20 /var/log/srun.log
 
 4. 检查服务器地址格式（必须包含 `http://` 或 `https://`）
 
-#### 问题 3：Web 界面找不到 Srun 选项
+#### 问题 4：Web 界面找不到 Srun 选项
 
 **解决方法**：
 ```bash
@@ -364,7 +387,7 @@ rm -rf /tmp/luci-*
 # 刷新浏览器（Ctrl+F5 强制刷新）
 ```
 
-#### 问题 4：开机不自动登录
+#### 问题 5：开机不自动登录
 
 **检查步骤**：
 
@@ -385,7 +408,7 @@ uci set srun.basic.auto_login='1'
 uci commit srun
 ```
 
-#### 问题 5：显示权限错误
+#### 问题 6：显示权限错误
 
 **解决方法**：
 ```bash

@@ -88,9 +88,9 @@ tar czf control.tar.gz -C ipk/control .
 # Create debian-binary
 echo "2.0" > debian-binary
 
-# Create final IPK
+# Create final IPK using ar (proper IPK/DEB format)
 IPK_FILENAME="../${PKG_NAME}_${PKG_VERSION}-${PKG_RELEASE}_${PKG_ARCH}.ipk"
-tar czf "${IPK_FILENAME}" debian-binary control.tar.gz data.tar.gz
+ar r "${IPK_FILENAME}" debian-binary control.tar.gz data.tar.gz 2>/dev/null
 
 cd ..
 
